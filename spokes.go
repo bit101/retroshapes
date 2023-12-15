@@ -22,22 +22,6 @@ type Spokes struct {
 	innerRadius float64
 }
 
-// NewSpokes creates a new Spokes object.
-// func NewSpokes(x, y, minRadius, maxRadius, endRadius, rotation float64, numSpokes int) *Spokes {
-// 	points := geom.NewPointList()
-// 	ns := float64(numSpokes)
-// 	for i := 0.0; i < ns; i++ {
-// 		radius := random.FloatRange(minRadius, maxRadius)
-// 		angle := i / ns * math.Pi
-// 		points.AddXY(math.Cos(angle)*radius, math.Sin(angle)*radius)
-// 		radius = random.FloatRange(minRadius, maxRadius)
-// 		points.AddXY(-math.Cos(angle)*radius, -math.Sin(angle)*radius)
-// 	}
-// 	points.Rotate(rotation)
-// 	points.Translate(x, y)
-// 	return &Spokes{points, endRadius}
-// }
-
 // NewRegularSpokes creates a new spokes object with uniform sized spokes.
 func NewRegularSpokes(x, y float64, numSpokes int, spokeLength, endRadius, innerRadius float64) *Spokes {
 	ns := float64(numSpokes)
@@ -84,4 +68,36 @@ func (s *Spokes) Draw(context *cairo.Context, fill bool) {
 		context.StrokeCircle(0, 0, s.innerRadius)
 	}
 	context.Restore()
+}
+
+// FillCircles draws the spokes shape.
+func (s *Spokes) FillCircles(context *cairo.Context, randCenter, randSpokes float64) {
+	context.Save()
+	context.Translate(s.x, s.y)
+	for _, spoke := range s.spokes {
+		context.Save()
+		context.Rotate(spoke.angle)
+		context.FillCircle(spoke.radius+random.FloatRange(-randSpokes, randSpokes), random.FloatRange(-randSpokes, randSpokes), spoke.endRadius)
+		context.Restore()
+	}
+	context.FillCircle(random.FloatRange(-randCenter, randCenter), random.FloatRange(-randCenter, randCenter), s.innerRadius)
+	context.Restore()
+}
+
+// RandomizeLengths randomizes the lengths of each spoke.
+func (s *Spokes) RandomizeLengths(rand float64) {
+	for _, spoke := range s.spokes {
+		spoke.radius += random.FloatRange(-rand, rand)
+	}
+}
+
+// RandomizeAngles randomizes the angles between spokes.
+// The rand parameter should be between 0 and 1, zero being no randomization and one being maximum.
+// Larger numbers can be used, but it gets chaotic.
+func (s *Spokes) RandomizeAngles(rand float64) {
+	ns := float64(len(s.spokes))
+	for _, spoke := range s.spokes {
+		angleVar := blmath.Tau / ns / 2 * random.FloatRange(-rand, rand)
+		spoke.angle += angleVar
+	}
 }

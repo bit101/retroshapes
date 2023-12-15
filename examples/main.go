@@ -2,6 +2,8 @@
 package main
 
 import (
+	"math"
+
 	"github.com/bit101/bitlib/random"
 	cairo "github.com/bit101/blcairo"
 	"github.com/bit101/blcairo/render"
@@ -10,7 +12,9 @@ import (
 
 func main() {
 	// renderFrame := skewerBlobs
-	renderFrame := skewerBlobs
+	// renderFrame := spokes
+	// renderFrame := skeweredSpokes
+	renderFrame := atoms
 
 	render.Image(900, 900, "out/out.png", renderFrame, 0.0)
 	render.ViewImage("out/out.png")
@@ -57,9 +61,54 @@ func spokes(context *cairo.Context, width, height, percent float64) {
 			endRadius := spokeLength * random.FloatRange(0.01, 0.15)
 			innerRadius := spokeLength * random.FloatRange(0.0, 0.4)
 			fill := random.Boolean()
-			// spokes := retroshapes.NewRegularSpokes(x, y, numSpokes, spokeLength, endRadius, innerRadius)
-			spokes := retroshapes.NewRandomSpokes(x, y, numSpokes, 50, 80, 0.5, endRadius, innerRadius)
+			spokes := retroshapes.NewRegularSpokes(x, y, numSpokes, spokeLength, endRadius, innerRadius)
+			// spokes.RandomizeLengths(5)
+			spokes.RandomizeAngles(1)
+			// spokes := retroshapes.NewRandomSpokes(x, y, numSpokes, 50, 80, 0.5, endRadius, innerRadius)
 			spokes.Draw(context, fill)
+		}
+	}
+}
+
+//revive:disable-next-line:unused-parameter
+func skeweredSpokes(context *cairo.Context, width, height, percent float64) {
+	context.BlackOnWhite()
+	context.SetLineWidth(0.75)
+
+	s := retroshapes.NewSkewer(50, 850, 850, 50, 1, 4)
+	s.Draw(context)
+
+	points := s.GetPoints(8, 100, 100)
+	for _, p := range points {
+		p.X += random.FloatRange(-10, 10)
+		p.Y += random.FloatRange(-10, 10)
+		spokeLength := random.FloatRange(30, 70)
+		numSpokes := random.IntRange(6, 16)
+		spokes := retroshapes.NewRegularSpokes(p.X, p.Y, numSpokes, spokeLength, 5, 20)
+		spokes.RandomizeLengths(10)
+		context.SetSourceHSV(random.FloatRange(0, 360), 0.5, 1)
+		spokes.FillCircles(context, 5, 3)
+		context.SetSourceBlack()
+		spokes.Draw(context, false)
+
+	}
+}
+
+//revive:disable-next-line:unused-parameter
+func atoms(context *cairo.Context, width, height, percent float64) {
+	context.BlackOnWhite()
+	context.SetLineWidth(0.75)
+
+	for x := 0.0; x <= width; x += 150 {
+		for y := 0.0; y <= height; y += 150 {
+			nRadius := random.FloatRange(3, 20)
+			rRadius := math.Min(70, nRadius*random.FloatRange(4, 6))
+			rRatio := random.FloatRange(0.25, 0.6)
+			eRadius := nRadius * random.FloatRange(0.1, 0.25)
+			numElectrons := random.IntRange(2, 5)
+			a := retroshapes.NewAtom(x, y, nRadius, rRadius, rRatio, eRadius, numElectrons)
+			a.Rotate(random.Angle())
+			a.Draw(context)
 		}
 	}
 }
