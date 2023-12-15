@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// renderFrame := skewerBlobs
-	renderFrame := spokes
+	renderFrame := skewerBlobs
 
 	render.Image(900, 900, "out/out.png", renderFrame, 0.0)
 	render.ViewImage("out/out.png")
@@ -27,12 +27,14 @@ func skewerBlobs(context *cairo.Context, width, height, percent float64) {
 		s.Draw(context)
 
 		context.SetLineWidth(0.75)
-		for y := 150.0; y < height-100; y += 100 {
+
+		points := s.GetPoints(6, 100, 100)
+		for _, p := range points {
 			size := random.FloatRange(50, 100)
 			rand := size * 0.2
 			rotation := random.FloatRange(-0.4, 0.4)
 
-			blob := retroshapes.NewBlob(x, y, size, rotation, rand)
+			blob := retroshapes.NewBlob(p.X, p.Y, size, rotation, rand)
 			context.SetSourceGray(random.FloatRange(0.4, 0.9))
 			blob.Fill(context)
 

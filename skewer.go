@@ -2,6 +2,10 @@
 package retroshapes
 
 import (
+	"math"
+
+	"github.com/bit101/bitlib/blmath"
+	"github.com/bit101/bitlib/geom"
 	"github.com/bit101/bitlib/random"
 	cairo "github.com/bit101/blcairo"
 )
@@ -39,4 +43,19 @@ func (s *Skewer) Randomize(rand float64) {
 	s.y0 += random.FloatRange(-rand, rand)
 	s.x1 += random.FloatRange(-rand, rand)
 	s.y1 += random.FloatRange(-rand, rand)
+}
+
+func (s *Skewer) GetPoints(numPoints int, topOffset, bottomOffset float64) geom.PointList {
+	points := geom.NewPointList()
+
+	dist := math.Hypot(s.x0-s.x1, s.y0-s.y1)
+	t0 := topOffset / dist
+	t1 := (dist - bottomOffset) / dist
+	for i := 0.0; i < float64(numPoints); i++ {
+		t := i / float64(numPoints-1)
+		t = blmath.Map(t, 0, 1, t0, t1)
+		points.AddXY(s.x0+t*(s.x1-s.x0), s.y0+t*(s.y1-s.y0))
+	}
+
+	return points
 }
